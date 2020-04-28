@@ -1,6 +1,8 @@
 # Full Stack API Final Project
 
 ## Full Stack Trivia
+- changes 
+    - ```update /questions?searchTerm=string to /questions/search?searchTerm=string to query data properly```
 
 Udacity is invested in creating bonding experiences for its employees and students. A bunch of team members got the idea to hold trivia on a regular basis and created a  webpage to manage the trivia app and play the game, but their API experience is limited and still needs to be built out. 
 
@@ -42,3 +44,17 @@ The `./frontend` directory contains a complete React frontend to consume the dat
 Pay special attention to what data the frontend is expecting from each API response to help guide how you format your API. 
 
 [View the README.md within ./frontend for more details.](./frontend/README.md)
+
+#### Endpoints
+
+|Endpoint         |Methods  |Rule                          |
+|---------------  |-------  |------------------------------|
+|add_question     |POST     |/questions/                   |
+|cat_questions    |GET      |/categories/<int:pk>/questions|
+|delete_question  |DELETE   |/questions/<int:pk>           |
+|exec             |GET      |/categories/                  |
+|game             |GET      |/quizzes/                      |
+|questions        |GET      |/questions/                   |
+|search_question  |GET      |/questions/search             |
+
+
