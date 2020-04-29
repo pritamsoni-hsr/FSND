@@ -3,6 +3,7 @@ from flask import Flask, request, abort, jsonify
 from flask_sqlalchemy import SQLAlchemy
 from flask_cors import CORS
 import random
+import functools
 from collections import OrderedDict
 from sqlalchemy.orm import joinedload
 import sqlalchemy
@@ -18,22 +19,31 @@ def create_app(test_config=None):
   setup_db(app)
 
   '''
-  @TODO: Set up CORS. Allow '*' for origins. Delete the sample route after completing the TODOs
+  @DONE: Set up CORS. Allow '*' for origins. Delete the sample route after completing the TODOs
   '''
   CORS(app)
 
   '''
-  @TODO: Use the after_request decorator to set Access-Control-Allow
+  @DONE: Use the after_request decorator to set Access-Control-Allow
   '''
   def after_request(func):
+    @functools.wraps(func)
     def exec(*args, **kwargs):
       r = func(*args, **kwargs)
       r.headers['Access-Control-Allow'] = '*'
       return r
     return exec
+  
+  def _paginate(qs, request):
+    # requires a queryset and a request object and returns paginated query
+    page = request.args.get('page', '1')
+    page = int(page) if page.isdigit() else 1
+    qs = qs.paginate(page, QUESTIONS_PER_PAGE, error_out=True)
+    return qs
+
 
   '''
-  @TODO: 
+  @DONE: 
   Create an endpoint to handle GET requests 
   for all available categories.
   '''
@@ -48,14 +58,13 @@ def create_app(test_config=None):
         q.insert()
         return jsonify({'result': q.format()})
       abort(404, 'data not correct')
-    page = request.args.get('page', '1')
-    page = int(page) if page.isdigit() else 1
-    queryset = Category.query.paginate(page, QUESTIONS_PER_PAGE, error_out=True)
-    results = [category.format() for category in queryset.items]
+    qs = Category.query
+    qs = _paginate(qs, request)
+    results = [category.format() for category in qs.items]
     return jsonify({'categories': results})
 
   '''
-  @TODO: 
+  @DONE: 
   Create an endpoint to handle GET requests for questions, 
   including pagination (every 10 questions). 
   This endpoint should return a list of questions, 
@@ -68,14 +77,8 @@ def create_app(test_config=None):
   '''
   @app.route('/questions/', methods=('GET', ))
   def questions():
-    page = request.args.get('page', '1')
-
-    if page.isdigit():
-      page = int(page)
-    else:
-      page = 1
-    questions = Question.query.filter().paginate(
-        page, QUESTIONS_PER_PAGE, error_out=True)
+    questions = Question.query.filter()
+    questions = _paginate(questions, request)
     categories = [category.format() for category in Category.query.paginate(1, QUESTIONS_PER_PAGE, error_out=True).items]  # noqa
 
     results = []
@@ -88,7 +91,7 @@ def create_app(test_config=None):
                                 'categories': categories}))
 
   '''
-  @TODO: 
+  @DONE: 
   Create an endpoint to DELETE question using a question ID. 
 
   TEST: When you click the trash icon next to a question, the question will be removed.
@@ -99,10 +102,10 @@ def create_app(test_config=None):
     q = Question.query.get_or_404(pk)
     if q:
       q.delete()
-    return jsonify({'result': 'success'})
+    return jsonify({'result': f'Deleted question {pk} successfully.'})
 
   '''
-  @TODO: 
+  @DONE: 
   Create an endpoint to POST a new question, 
   which will require the question and answer text, 
   category, and difficulty score.
@@ -129,7 +132,7 @@ def create_app(test_config=None):
     return abort(404,'Data is not correct')
 
   '''
-  @TODO: 
+  @DONE: 
   Create a POST endpoint to get questions based on a search term. 
   It should return any questions for whom the search term 
   is a substring of the question. 
@@ -141,17 +144,15 @@ def create_app(test_config=None):
   @app.route('/questions/search', methods=('GET',))
   def search_question():
     q = request.args.get('searchTerm', None)
-    page = request.args.get('page', '1')
-    page = int(page) if page.isdigit() else 1
     if not q:
       return jsonify({'results': 'no questions found'})
-    qs = Question.query.filter(Question.question.contains(q)).paginate(
-        page, QUESTIONS_PER_PAGE, error_out=True)
+    qs = Question.query.filter(Question.question.ilike(q))
+    qs = _paginate(qs, request)
     results = [question.format() for question in qs.items]
     return jsonify({'questions': results})
 
   '''
-  @TODO: 
+  @DONE: 
   Create a GET endpoint to get questions based on category. 
 
   TEST: In the "List" tab / main screen, clicking on one of the 
@@ -160,19 +161,17 @@ def create_app(test_config=None):
   '''
   @app.route('/categories/<int:pk>/questions',  methods=('GET',))
   def cat_questions(pk):
-    page = request.args.get('page', '1')
-    page = int(page) if page.isdigit() else 1
     qs = Question.query.filter(Question.category== str(pk))
     # qs = Question.query.join(Category, Category.id==Question.category).filter(Category.id == str(pk))
     if qs.count()>0:
-      qs = qs.paginate(page, QUESTIONS_PER_PAGE, error_out=True)
+      qs = _paginate(qs, request)
     else:
       abort(404)
     results = [question.format() for question in qs.items]
     return jsonify({'categories': results})
 
   '''
-  @TODO: 
+  @DONE: 
   Create a POST endpoint to get questions to play the quiz. 
   This endpoint should take category and previous question parameters 
   and return a random questions within the given category, 
@@ -206,7 +205,7 @@ def create_app(test_config=None):
     return jsonify(question)
 
   '''
-  @TODO: 
+  @DONE: 
   Create error handlers for all expected errors 
   including 404 and 422. 
   '''

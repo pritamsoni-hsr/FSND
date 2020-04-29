@@ -47,14 +47,14 @@ Pay special attention to what data the frontend is expecting from each API respo
 
 #### Endpoints
 
-|Endpoint         |Methods  |Rule                          |
-|---------------  |-------  |------------------------------|
-|add_question     |POST     |/questions/                   |
-|cat_questions    |GET      |/categories/<int:pk>/questions|
-|delete_question  |DELETE   |/questions/<int:pk>           |
-|exec             |GET      |/categories/                  |
-|game             |GET      |/quizzes/                      |
-|questions        |GET      |/questions/                   |
-|search_question  |GET      |/questions/search             |
+|Endpoint         |Methods  |Rule                          |Description|
+|---------------  |-------  |------------------------------|-----------|
+|add_question     |POST     |/questions/                   |Add questions to the database formdata must have {question:string, answer:string, category:int and difficulty:int } |
+|cat_questions    |GET      |/categories/<int:pk>/questions|Fetch **paginated questions for any particular category id, optionaly queryparam is ?page=int for pagination.|
+|delete_question  |DELETE   |/questions/<int:pk>           |Delete question by their id.|
+|categories       |GET, POST|/categories/                  |Add or fetch **paginated categories avaiable. while adding formdata must have {type:string} which is category type.|
+|game             |GET      |/quizzes/                     |This endpoint will take `?quiz_category=integer` and `previous_questions=list of integers` as query parameters and return a random questions within the given category, if provided, and that is not one of the previous questions.|
+|questions        |GET      |/questions/                   |Fetch **paginated questions.|
+|search_question  |GET      |/questions/search             |Fetch **paginated questions of question queried by `?searchTerm=string`, search will work againt question title.
 
-
+> ** If an endpoint returns a paginted response you can specify `?page=integer` to fetch that particular page number
